@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-
-import "@openzeppelin/contracts/access/Ownable.sol";
+pragma solidity ^0.8.20;
 
 /*********************************************************************************************************** */
 
@@ -18,7 +16,8 @@ Please consult with legal experts to ensure regulatory compliance and tailor the
 
 
 // Define the environmental asset contract
-contract EnvironmentalAsset is Ownable {
+contract EnvironmentalAsset {
+
     string public assetName;
     string public assetType;
     uint256 public totalSupply;
@@ -31,7 +30,7 @@ contract EnvironmentalAsset is Ownable {
 
     event AssetMinted(address indexed holder, uint256 amount);
     event AssetTransferred(address indexed from, address indexed to, uint256 amount);
-    event CheckBalance(string text, uint amount);
+    event CheckBalance(uint amount);
 
     constructor(
         string memory _name,
@@ -47,6 +46,11 @@ contract EnvironmentalAsset is Ownable {
         assetPrice = _price;
         expirationDate = _expirationDate;
         issuer = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == issuer, "only owner can call this function");
+        _;
     }
 
     function mintAsset(address recipient, uint256 amount) external onlyOwner {
@@ -65,15 +69,12 @@ contract EnvironmentalAsset is Ownable {
 
     function revokeAsset() external onlyOwner {
         require(block.timestamp >= expirationDate, "Asset cannot be revoked before expiration");
-        selfdestruct(payable(owner()));
+        selfdestruct(payable(issuer));
     }
 
     function getBalance(address user_account) external returns (uint){
-    
-       string memory data = "User Balance is : ";
        uint user_bal = user_account.balance;
-       emit CheckBalance(data, user_bal );
+       emit CheckBalance(user_bal);
        return (user_bal);
-
     }
 }
